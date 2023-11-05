@@ -2,6 +2,8 @@
 
 Authors:
 
-Andrés Bueno Cardona
-Daniel A. Mejia Ruales
-Jeanpaul A. Vidales Gallego
+- Andrés Bueno Cardona
+  
+- Daniel A. Mejia Ruales
+  
+- Jeanpaul A. Vidales Gallego
