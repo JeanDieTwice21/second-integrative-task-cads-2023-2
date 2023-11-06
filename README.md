@@ -7,3 +7,7 @@ Authors:
 - Daniel A. Mejia Ruales
   
 - Jeanpaul A. Vidales Gallego
+
+
+##First delivery 5/11/2023
+- The documents that the repository has in the main branch so far correspond to the first release
