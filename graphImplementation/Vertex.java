@@ -1,27 +1,27 @@
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Vertex<T> {
+    private String id;
     private T data;
-    private int weight;
     private boolean isVisited;
-    private List<Edge<T>> edges;
+    private List<Edge<T>> aristas;
+    private int index;
 
-    public Vertex(T data, int weight) {
+    public Vertex(String id, T data, int index) {
+        this.id = id;
         this.data = data;
-        this.weight = weight;
         this.isVisited = false;
-        this.edges = new ArrayList<>(); 
+        this.aristas = new ArrayList<>();
+        this.index = index;
     }
-
+    public String getId() {
+        return id;
+    }
     public T getData() {
         return data;
     }
-
-    public int getWeight() {
-        return weight;
-    }
-
     public boolean isVisited() {
         return isVisited;
     }
@@ -29,12 +29,14 @@ public class Vertex<T> {
     public void setVisited(boolean visited) {
         this.isVisited = visited;
     }
-
-    public List<Edge<T>> getEdges() {
-        return edges;
+    public List<Edge<T>> getAristas() {
+        return aristas;
     }
-
-    public void addEdge(Edge<T> edge) {
-        edges.add(edge);
+    public void addEdge(Vertex<T> destiny, int weight) {
+        Edge<T> edge = new Edge<>(destiny, weight);
+        aristas.add(edge);
+    }
+    public int getIndex() {
+        return index;
     }
 }

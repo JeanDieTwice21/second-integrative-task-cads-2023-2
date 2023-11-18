@@ -1,5 +1,4 @@
 
-
 public class Edge<T> implements Comparable<Edge<T>> {
     private Vertex<T> destination;
     private int weight;
@@ -16,11 +15,9 @@ public class Edge<T> implements Comparable<Edge<T>> {
     public int getWeight() {
         return weight;
     }
-
     @Override
     public int compareTo(Edge<T> other) {
         return Integer.compare(this.weight, other.weight);
-        
     }
 
 }
