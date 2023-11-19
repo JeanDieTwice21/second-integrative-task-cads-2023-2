@@ -7,19 +7,20 @@ import java.util.Queue;
 import java.util.Stack;
 
 public class GraphMatriz<T> implements IGraph<T> {
-    private Hashtable<String, Vertex<T>> vertices;
+    private Hashtable<T, Vertex<T>> vertices;
     private int[][] adjMatrix;
     private int numVertices;
 
     public GraphMatriz() {
         this.vertices = new Hashtable<>();
-        this.adjMatrix = new int[numVertices][numVertices];
         this.numVertices = 0;
-        for (int i = 0; i < numVertices; i++) {
-            for (int j = 0; j < numVertices; j++) {
-                adjMatrix[i][j] = -1;
-            }
+        this.adjMatrix = new int[numVertices][numVertices];
+
+    for (int i = 0; i < numVertices; i++) {
+        for (int j = 0; j < numVertices; j++) {
+            adjMatrix[i][j] = -1;
         }
+    }
     }
     /**
      * The function adds a new vertex to a graph and updates the adjacency matrix accordingly.
@@ -30,16 +31,25 @@ public class GraphMatriz<T> implements IGraph<T> {
      * used to store the data associated with the vertex.
      */
     @Override
-    public void addVertex(String key, T data) {
+    public void addVertex(T key, T data) {
+        
         Vertex<T> newVertex = new Vertex<>(key, data, numVertices);
         vertices.put(key, newVertex);
 
+        // Actualizar la matriz de adyacencia para incluir el nuevo vértice
+        int[][] newAdjMatrix = new int[numVertices + 1][numVertices + 1];
         for (int i = 0; i <= numVertices; i++) {
-            adjMatrix[i][numVertices] = -1;
-            adjMatrix[numVertices][i] = -1;
+            for (int j = 0; j <= numVertices; j++) {
+                if (i < numVertices && j < numVertices) {
+                    newAdjMatrix[i][j] = adjMatrix[i][j];
+                } else {
+                    newAdjMatrix[i][j] = -1;
+                }
+            }
         }
 
-        numVertices++;
+        numVertices++;  // Aumentar el número de vértices
+        adjMatrix = newAdjMatrix;  // Actua
     }
     /**
      * The function adds an edge between two vertices in a graph and updates the adjacency matrix with
@@ -53,7 +63,7 @@ public class GraphMatriz<T> implements IGraph<T> {
      * strength or distance between the two vertices.
      */
     @Override
-    public void addEdge(String sourceKey, String destinationKey, int weight) throws IllegalArgumentException {
+    public void addEdge(T sourceKey, T destinationKey, int weight) throws IllegalArgumentException {
         Vertex<T> sourceVertex = vertices.get(sourceKey);
         Vertex<T> destinationVertex = vertices.get(destinationKey);
         if (sourceVertex == null || destinationVertex == null) {
@@ -74,7 +84,7 @@ public class GraphMatriz<T> implements IGraph<T> {
        * breadth-first search (BFS) traversal starting from the specified startVertexKey.
        */
       @Override
-      public String bfs(String startVertexKey) {
+      public String bfs(T startVertexKey) {
         StringBuilder result = new StringBuilder();
         try {
             Vertex<T> startVertex = vertices.get(startVertexKey);
@@ -123,7 +133,7 @@ public class GraphMatriz<T> implements IGraph<T> {
     * First Search (DFS) traversal of the graph, starting from the specified start vertex.
     */
     @Override
-    public String dfs(String startVertexKey) {
+    public String dfs(T startVertexKey) {
         StringBuilder result = new StringBuilder();
         try {
             Vertex<T> startVertex = vertices.get(startVertexKey);
@@ -181,40 +191,39 @@ public class GraphMatriz<T> implements IGraph<T> {
    * starting vertex for the Dijkstra's algorithm.
    * @return The method is returning a List of Vertex objects.
    */
-    @Override
-    public List<Vertex<T>> dijkstra(String startVertexKey) {
-             List<Vertex<T>> shortestPath = new ArrayList<>();
+    public List<Vertex<T>> dijkstra(T startVertexKey, T destinyKey) {
+        List<Vertex<T>> shortestPath = new ArrayList<>();
         try {
             Vertex<T> startVertex = vertices.get(startVertexKey);
-
-            if (startVertex == null) {
-                throw new IllegalArgumentException("Start vertex not found.");
+            Vertex<T> destinyVertex = vertices.get(destinyKey);
+    
+            if (startVertex == null || destinyVertex == null) {
+                throw new IllegalArgumentException("Start or destiny vertex not found.");
             }
-
+    
             int numVertices = vertices.size();
             int[] distances = new int[numVertices];
             int[] previousVertices = new int[numVertices];
             PriorityQueue<VertexDistancePair<T>> priorityQueue = new PriorityQueue<>();
-
-        
+    
             for (int i = 0; i < numVertices; i++) {
                 distances[i] = Integer.MAX_VALUE;
                 previousVertices[i] = -1;
             }
-
+    
             int startVertexIndex = startVertex.getIndex();
             distances[startVertexIndex] = 0;
             priorityQueue.add(new VertexDistancePair<T>(startVertex, 0));
-
+    
             while (!priorityQueue.isEmpty()) {
                 VertexDistancePair<T> currentPair = priorityQueue.poll();
                 Vertex<T> currentVertex = currentPair.getVertex();
-
+    
                 for (int i = 0; i < numVertices; i++) {
                     if (adjMatrix[currentVertex.getIndex()][i] != -1) {
                         int edgeWeight = adjMatrix[currentVertex.getIndex()][i];
                         int newDistance = distances[currentVertex.getIndex()] + edgeWeight;
-
+    
                         if (newDistance < distances[i]) {
                             distances[i] = newDistance;
                             previousVertices[i] = currentVertex.getIndex();
@@ -223,12 +232,12 @@ public class GraphMatriz<T> implements IGraph<T> {
                     }
                 }
             }
-
-            for (int i = 0; i < numVertices; i++) {
-                shortestPath.add(getVertexByIndex(i));
+            int destinyVertexIndex = destinyVertex.getIndex();
+            while (destinyVertexIndex != -1) {
+                shortestPath.add(0, getVertexByIndex(destinyVertexIndex));
+                destinyVertexIndex = previousVertices[destinyVertexIndex];
             }
         } catch (IllegalArgumentException e) {
-           
             System.out.println("Error: " + e.getMessage());
         }
         return shortestPath;

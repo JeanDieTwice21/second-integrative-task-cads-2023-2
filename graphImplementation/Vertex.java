@@ -3,20 +3,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Vertex<T> {
-    private String id;
+    private T id;
     private T data;
     private boolean isVisited;
     private List<Edge<T>> aristas;
     private int index;
 
-    public Vertex(String id, T data, int index) {
+    public Vertex(T id, T data, int index) {
         this.id = id;
         this.data = data;
         this.isVisited = false;
         this.aristas = new ArrayList<>();
         this.index = index;
     }
-    public String getId() {
+    public T getId() {
         return id;
     }
     public T getData() {

@@ -1,9 +1,9 @@
 import java.util.List;
 
 public interface IGraph<T> {
-    public void addVertex(String Key,T data);
-    public void addEdge(String sourceKey, String destinationKey, int weight); 
-    public String bfs(String startVertexKey);
-    public String dfs(String startVertexKey);
-    public List<Vertex<T>> dijkstra(String startVertexKey);
+    public void addVertex(T Key,T data);
+    public void addEdge(T sourceKey, T destinationKey, int weight); 
+    public String bfs(T startVertexKey);
+    public String dfs(T startVertexKey);
+    
 }
