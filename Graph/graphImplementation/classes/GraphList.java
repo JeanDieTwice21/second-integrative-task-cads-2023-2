@@ -1,3 +1,5 @@
+package graphImplementation.classes;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,7 +12,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Stack;
 
-public class GraphList<T> implements IGraph {
+public class GraphList<T> implements IGraph<T> {
     private Hashtable<T, VertexList<T>> vertices;
     public GraphList() {
         this.vertices = new Hashtable<>();
@@ -149,3 +151,4 @@ public class GraphList<T> implements IGraph {
     }
     
 }
+

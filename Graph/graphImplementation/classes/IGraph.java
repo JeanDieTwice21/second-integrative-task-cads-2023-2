@@ -1,4 +1,4 @@
-import java.util.List;
+package graphImplementation.classes;
 
 public interface IGraph<T> {
     public void addVertex(T Key,T data);

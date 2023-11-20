@@ -1,19 +1,21 @@
+package graphImplementation.classes;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class VertexList<T> {
+public class Vertex<T> {
     private T id;
     private T data;
     private boolean isVisited;
     private List<Edge<T>> aristas;
-    private List<VertexList<T>> adyacencyList;
+    private int index;
 
-    public VertexList(T id, T data) {
+    public Vertex(T id, T data, int index) {
         this.id = id;
         this.data = data;
         this.isVisited = false;
         this.aristas = new ArrayList<>();
-        this.adyacencyList = new ArrayList<>();
+        this.index = index;
     }
     public T getId() {
         return id;
@@ -31,14 +33,11 @@ public class VertexList<T> {
     public List<Edge<T>> getAristas() {
         return aristas;
     }
-    public void addEdge(VertexList<T> destiny, int weight) {
+    public void addEdge(Vertex<T> destiny, int weight) {
         Edge<T> edge = new Edge<>(destiny, weight);
         aristas.add(edge);
     }
-    public void addVertex(VertexList<T> vertex) {
-        adyacencyList.add(vertex);
-    }
-    public List<VertexList<T>> getAdyacencyList(){
-        return adyacencyList;
+    public int getIndex() {
+        return index;
     }
 }

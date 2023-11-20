@@ -1,3 +1,6 @@
+package graphImplementation.classes;
+import graphImplementation.CustomExceptions.InvalidEntriesException;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -32,11 +35,21 @@ public class GraphMatriz<T> implements IGraph<T> {
      */
     @Override
     public void addVertex(T key, T data) {
-        
+
+        if (vertices.containsKey(key)) {
+            throw new InvalidEntriesException("Vertex with the same key already exists.");
+        }
+        if (data == null) {
+            throw new InvalidEntriesException("Vertex data cannot be null.");
+        }
+        for (Vertex<T> vertex : vertices.values()) {
+            if (vertex.getData().equals(data)) {
+                throw new InvalidEntriesException("Vertex with the same data already exists.");
+            }
+        }
         Vertex<T> newVertex = new Vertex<>(key, data, numVertices);
         vertices.put(key, newVertex);
 
-        // Actualizar la matriz de adyacencia para incluir el nuevo vértice
         int[][] newAdjMatrix = new int[numVertices + 1][numVertices + 1];
         for (int i = 0; i <= numVertices; i++) {
             for (int j = 0; j <= numVertices; j++) {
@@ -48,8 +61,8 @@ public class GraphMatriz<T> implements IGraph<T> {
             }
         }
 
-        numVertices++;  // Aumentar el número de vértices
-        adjMatrix = newAdjMatrix;  // Actua
+        numVertices++;
+        adjMatrix = newAdjMatrix;
     }
     /**
      * The function adds an edge between two vertices in a graph and updates the adjacency matrix with
@@ -63,12 +76,19 @@ public class GraphMatriz<T> implements IGraph<T> {
      * strength or distance between the two vertices.
      */
     @Override
-    public void addEdge(T sourceKey, T destinationKey, int weight) throws IllegalArgumentException {
+    public void addEdge(T sourceKey, T destinationKey, int weight) throws IllegalArgumentException {// Escenario 1: Se añade una edge con weight negativo.
+        if (weight < 0) {
+            throw new InvalidEntriesException("Edge weight cannot be negative.");
+        }
         Vertex<T> sourceVertex = vertices.get(sourceKey);
         Vertex<T> destinationVertex = vertices.get(destinationKey);
         if (sourceVertex == null || destinationVertex == null) {
             throw new IllegalArgumentException("One or both vertices not found in the graph.");
         }
+        if (sourceVertex == destinationVertex) {
+            throw new InvalidEntriesException("Cannot add an edge that points to itself.");
+        }
+
         sourceVertex.addEdge(destinationVertex, weight);
         int sourceIndex = sourceVertex.getIndex();
         int destinationIndex = destinationVertex.getIndex();
@@ -196,34 +216,34 @@ public class GraphMatriz<T> implements IGraph<T> {
         try {
             Vertex<T> startVertex = vertices.get(startVertexKey);
             Vertex<T> destinyVertex = vertices.get(destinyKey);
-    
+
             if (startVertex == null || destinyVertex == null) {
                 throw new IllegalArgumentException("Start or destiny vertex not found.");
             }
-    
+
             int numVertices = vertices.size();
             int[] distances = new int[numVertices];
             int[] previousVertices = new int[numVertices];
             PriorityQueue<VertexDistancePair<T>> priorityQueue = new PriorityQueue<>();
-    
+
             for (int i = 0; i < numVertices; i++) {
                 distances[i] = Integer.MAX_VALUE;
                 previousVertices[i] = -1;
             }
-    
+
             int startVertexIndex = startVertex.getIndex();
             distances[startVertexIndex] = 0;
             priorityQueue.add(new VertexDistancePair<T>(startVertex, 0));
-    
+
             while (!priorityQueue.isEmpty()) {
                 VertexDistancePair<T> currentPair = priorityQueue.poll();
                 Vertex<T> currentVertex = currentPair.getVertex();
-    
+
                 for (int i = 0; i < numVertices; i++) {
                     if (adjMatrix[currentVertex.getIndex()][i] != -1) {
                         int edgeWeight = adjMatrix[currentVertex.getIndex()][i];
                         int newDistance = distances[currentVertex.getIndex()] + edgeWeight;
-    
+
                         if (newDistance < distances[i]) {
                             distances[i] = newDistance;
                             previousVertices[i] = currentVertex.getIndex();
@@ -232,11 +252,16 @@ public class GraphMatriz<T> implements IGraph<T> {
                     }
                 }
             }
+
             int destinyVertexIndex = destinyVertex.getIndex();
             while (destinyVertexIndex != -1) {
                 shortestPath.add(0, getVertexByIndex(destinyVertexIndex));
                 destinyVertexIndex = previousVertices[destinyVertexIndex];
             }
+            if (shortestPath.isEmpty() || shortestPath.get(0).equals(destinyVertex)) {
+                shortestPath.clear();
+            }
+
         } catch (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -251,15 +276,17 @@ public class GraphMatriz<T> implements IGraph<T> {
     public String getAdjacencyMatrixAsString() {
         StringBuilder matrixString = new StringBuilder("Adjacency Matrix:\n");
         int numVertices = vertices.size();
+        if(numVertices == 0){
+            return "Adjacency Matrix:\n" +"";
+        }
 
-        // Construir encabezados de columnas
         matrixString.append("   ");
         for (int i = 0; i < numVertices; i++) {
             matrixString.append(getVertexByIndex(i).getId()).append(" ");
         }
         matrixString.append("\n");
 
-        // Construir filas de la matriz
+
         for (int i = 0; i < numVertices; i++) {
             matrixString.append(getVertexByIndex(i).getId()).append(" ");
             for (int j = 0; j < numVertices; j++) {
@@ -269,5 +296,29 @@ public class GraphMatriz<T> implements IGraph<T> {
         }
         return matrixString.toString();
     }
-    
+    public int getNumVertices() {
+        return numVertices;
+    }
+    /**
+     * Get the weight of the edge between the source and destination vertices.
+     *
+     * @param sourceKey      The key of the source vertex.
+     * @param destinationKey The key of the destination vertex.
+     * @return The weight of the edge between the source and destination vertices, or -1 if no edge exists.
+     */
+    public int getEdgeWeight(T sourceKey, T destinationKey) {
+        Vertex<T> sourceVertex = vertices.get(sourceKey);
+        Vertex<T> destinationVertex = vertices.get(destinationKey);
+
+        if (sourceVertex == null || destinationVertex == null) {
+            throw new IllegalArgumentException("One or both vertices not found in the graph.");
+        }
+        int sourceIndex = sourceVertex.getIndex();
+        int destinationIndex = destinationVertex.getIndex();
+        if (adjMatrix[sourceIndex][destinationIndex] == -1) {
+            return -1;
+        }
+
+        return adjMatrix[sourceIndex][destinationIndex];
+    }
 }
