@@ -40,31 +40,31 @@ public class MainCharacter{
         this.position = new Position(100,100);
 
         for(int i = 0; i <=1; i++ ) {
-            Image image1 = new Image(getClass().getResourceAsStream(PATH_IDLE+i+".png"), 50, 50, false, false);
+            Image image1 = new Image(getClass().getResourceAsStream(PATH_IDLE+i+".png"), 20, 20, false, false);
             this.idles.add(image1);
         }
 
 
         for (int i = 0; i <= 3 ; i++) {
-            Image image = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"), 50, 50, false, false);
+            Image image = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"), 20, 20, false, false);
             this.runLeft.add(image);
         }
 
         for(int i = 4; i <= 7; i++){
 
-            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),50,50,false,false);
+            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),20,20,false,false);
             this.runRight.add(img);
         }
 
         for(int i = 8; i <= 10; i++){
 
-            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),50,50,false,false);
+            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),20,20,false,false);
             this.runDown.add(img);
         }
 
 
         for(int i = 11; i <= 13; i++){
-            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),50,50,false,false);
+            Image img = new Image(getClass().getResourceAsStream(PATH_RUN+i+".png"),20,20,false,false);
             this.runUpper.add(img);
         }
 
@@ -73,6 +73,7 @@ public class MainCharacter{
 
     public void paint(){
 
+        stop();
         onMoveRight();
         onMoveLeft();
         onMoveUp();
@@ -160,7 +161,8 @@ public class MainCharacter{
 
     public void onMoveRight(){
         if (rightPressed){
-            position.setX(position.getX() + 10);
+            position.setX(position.getX() + 5);
+            System.out.println("X: " + position.getX());
         }
     }
 
@@ -168,7 +170,8 @@ public class MainCharacter{
 
         if(leftPressed){
 
-            position.setX(position.getX() - 10);
+            position.setX(position.getX() - 5);
+            System.out.println("X: " + position.getX());
         }
     }
 
@@ -176,7 +179,8 @@ public class MainCharacter{
 
         if(upPressed){
 
-            position.setY(position.getY() - 10);
+            position.setY(position.getY() - 5);
+            System.out.println("Y: " + position.getY());
         }
     }
 
@@ -184,9 +188,30 @@ public class MainCharacter{
 
         if(downPressed){
 
-            position.setY(position.getY() + 10);
+            position.setY(position.getY() + 5);
+            System.out.println("Y: " + position.getY());
         }
 
+    }
+
+    public void stop(){
+
+        if(rightPressed && position.getX()>=585){
+            this.position.setX(585);
+            this.rightPressed=false;
+        }
+        if(leftPressed && position.getX() <= 10){
+            this.position.setX(10);
+            this.leftPressed=false;
+        }
+        if(upPressed && position.getY() <= 10){
+            this.position.setY(10);
+            this.downPressed=false;
+        }
+        if(downPressed && position.getY()>=385){
+            this.position.setY(384);
+            this.upPressed=false;
+        }
     }
 
 }
