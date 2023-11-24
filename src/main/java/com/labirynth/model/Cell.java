@@ -5,10 +5,16 @@ public class Cell {
     private int col;
     private CellType type;
 
+    private Position pos;
+
+    public static final int SIZE = 30;
+
     public Cell(int row, int col, CellType type) {
+
         this.row = row;
         this.col = col;
         this.type = type;
+
     }
 
 
@@ -39,6 +45,16 @@ public class Cell {
 
     public void setType(CellType type){
 
-        this.type =type;
+        this.type = type;
+    }
+
+    public Position getPosition(){
+
+        return pos;
+    }
+
+    public void setPosition(Position pos){
+
+        this.pos = pos;
     }
 }

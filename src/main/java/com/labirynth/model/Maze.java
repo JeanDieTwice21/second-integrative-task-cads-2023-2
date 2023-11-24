@@ -31,6 +31,16 @@ public class Maze extends GraphList<String, Cell> {
         return getVertex(key);
     }
 
+    public int getCellSizeX() {
+        // Devuelve el tamaño de la celda en el eje X (suponiendo que todas las celdas tienen el mismo tamaño)
+        return Cell.SIZE;
+    }
+
+    public int getCellSizeY() {
+        // Devuelve el tamaño de la celda en el eje Y (suponiendo que todas las celdas tienen el mismo tamaño)
+        return Cell.SIZE;
+    }
+
     public List<VertexList<Cell, String>> getNeighbors(VertexList<Cell, String> vertex) {
         List<VertexList<Cell, String>> neighbors = new ArrayList<>();
 
@@ -76,6 +86,14 @@ public class Maze extends GraphList<String, Cell> {
 
         return getVertices().get(key);
 
+    }
+
+    public int getNumRows() {
+        return 50;
+    }
+
+    public int getNumCols() {
+        return 50;
     }
 
 }

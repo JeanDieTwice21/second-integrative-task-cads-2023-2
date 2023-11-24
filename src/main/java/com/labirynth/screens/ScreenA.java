@@ -1,8 +1,5 @@
 package com.labirynth.screens;
-import com.labirynth.model.Cell;
-import com.labirynth.model.CellType;
-import com.labirynth.model.MainCharacter;
-import com.labirynth.model.Maze;
+import com.labirynth.model.*;
 import com.labirynth.util.VertexList;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -24,9 +21,11 @@ public class ScreenA {
 
         this.canvas = canvas;
         this.graphicsContext = this.canvas.getGraphicsContext2D();
-        this.avatar = new MainCharacter(this.canvas);
         this.maze = new Maze(); // Instancia del laberinto
         initializeMaze();
+        this.avatar = new MainCharacter(this.canvas, this.maze);
+
+
     }
 
     public void paint() {
@@ -34,6 +33,8 @@ public class ScreenA {
         graphicsContext.setFill(Color.DARKGRAY);
         graphicsContext.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         paintMaze();
+
+
         avatar.paint();
 
     }
@@ -41,8 +42,8 @@ public class ScreenA {
     private void paintMaze() {
         int numRows = 50;
         int numCols = 50;
-        int cellSizeX = (int) canvas.getWidth() / numRows;
-        int cellSizeY = (int) canvas.getHeight() / numCols;
+        int cellSizeX = maze.getCellSizeX();
+        int cellSizeY = maze.getCellSizeY();
 
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
@@ -50,6 +51,11 @@ public class ScreenA {
                 Cell currentCell = vertexList.getData();
                 double x = i * cellSizeX;
                 double y = j * cellSizeY;
+
+                // Validar si la posición está dentro de los límites del canvas
+                if (x >= canvas.getWidth() || y >= canvas.getHeight()) {
+                    continue;
+                }
 
                 // Pintar la celda según su tipo
                 switch (currentCell.getType()) {
@@ -75,51 +81,61 @@ public class ScreenA {
     }
 
     private void initializeMaze() {
-        Random random = new Random();
+        int numRows = 50;
+        int numCols = 50;
+        int cellSizeX = maze.getCellSizeX();
+        int cellSizeY = maze.getCellSizeY();
+
+        boolean exitPlaced = false;  // Variable de control
 
         // Genera el grafo del laberinto con 50 vértices y 50 aristas
-        for (int i = 0; i < 50; i++) {
-            for (int j = 0; j < 50; j++) {
-                // Generar un tipo de celda aleatorio
-                CellType cellType = getRandomCellType(random);
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                // Generar un tipo de celda fijo
+                CellType cellType = CellType.EMPTY;
+
+                // Establecer algunas celdas como paredes (puedes ajustar esto según tu necesidad)
+                if (i % 2 == 0 && j % 2 == 0) {
+                    cellType = CellType.WALL;
+                }
 
                 Cell currentCell = new Cell(i, j, cellType);
                 String currentKey = maze.generateKey(i, j);
                 maze.addCell(i, j, cellType);
 
-                // Conectar con la celda a la derecha o debajo (aleatoriamente)
-                if (i < 49 && (j == 49 || random.nextBoolean())) {
+                // Asignar posición a la celda
+                double x = i * cellSizeX;
+                double y = j * cellSizeY;
+                currentCell.setPosition(new Position(x, y));
+
+                // Verificar si es hora de colocar la celda de salida
+                if (!exitPlaced && i == numRows - 1 && j == numCols - 1) {
+                    currentCell.setType(CellType.EXIT);
+                    exitPlaced = true;
+                }
+
+                // Conectar con la celda a la derecha o debajo
+                if (i < numRows - 1) {
                     Cell nextCellInRow = new Cell(i + 1, j, cellType);
                     String nextKeyInRow = maze.generateKey(i + 1, j);
                     maze.addCell(i + 1, j, cellType);  // Añadir celda a la derecha al laberinto
+                    nextCellInRow.setPosition(new Position((i + 1) * cellSizeX, j * cellSizeY));
                     maze.connectCells(currentCell, nextCellInRow);
-                } else if (j < 49) {
+                }
+
+                if (j < numCols - 1) {
                     Cell nextCellInColumn = new Cell(i, j + 1, cellType);
                     String nextKeyInColumn = maze.generateKey(i, j + 1);
                     maze.addCell(i, j + 1, cellType);  // Añadir celda debajo al laberinto
+                    nextCellInColumn.setPosition(new Position(i * cellSizeX, (j + 1) * cellSizeY));
                     maze.connectCells(currentCell, nextCellInColumn);
                 }
             }
         }
-
-        // Asegurar una casilla de inicio y una casilla de salida
-        Cell startCell = getRandomEmptyCell(random);
-        Cell exitCell = getRandomEmptyCell(random);
-
-        startCell.setType(CellType.START);
-        exitCell.setType(CellType.EXIT);
-
-        // Asegurar que haya una ruta entre la casilla de inicio y la casilla de salida
-        List<VertexList<Cell, String>> path = maze.findShortestPath(startCell, exitCell);
-        while (path.isEmpty()) {
-            // Cambiar la posición de la casilla de salida y volver a intentar
-            exitCell.setType(CellType.EMPTY);
-            exitCell = getRandomEmptyCell(random);
-            exitCell.setType(CellType.EXIT);
-
-            path = maze.findShortestPath(startCell, exitCell);
-        }
     }
+
+
+
 
     private CellType getRandomCellType(Random random) {
         double probability = random.nextDouble();
