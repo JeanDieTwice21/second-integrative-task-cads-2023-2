@@ -12,50 +12,74 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Stack;
 
-public class GraphList<T> implements IGraph<T> {
-    private Hashtable<T, VertexList<T>> vertices;
+public class GraphList<K,T> implements IGraph<K,T> {
+    private Hashtable<K, VertexList<T,K>> vertices;
     public GraphList() {
         this.vertices = new Hashtable<>();
     }
+    /**
+     * The addVertex function adds a new vertex to the graph if it doesn't already exist.
+     *
+     * @param key The key is a unique identifier for the vertex. It is used to access and retrieve the
+     * vertex from the graph.
+     * @param data The "data" parameter is of type T, which represents the data associated with the
+     * vertex. It can be any type of data that you want to associate with the vertex, such as a string,
+     * integer, object, etc.
+     */
     @Override
-    public void addVertex(T key, T data) {
-        if (!vertices.containsKey(key)) {
-            VertexList<T> vertex = new VertexList<>(key, data);
+    public void addVertex(K key, T data) {
+        if (key != null && data != null && !vertices.containsKey(key)) {
+            VertexList<T, K> vertex = new VertexList<>(key, data);
             vertices.put(key, vertex);
         }
     }
+    /**
+     * The addEdge function adds an edge between two vertices with a given weight.
+     *
+     * @param sourceKey The source key is the key of the vertex from which the edge originates. It is
+     * used to retrieve the corresponding vertex from the vertices map.
+     * @param destinationKey The destinationKey parameter is the key of the vertex to which the edge
+     * will be added.
+     * @param weight The weight parameter represents the weight or cost associated with the edge
+     * between the sourceKey and destinationKey vertices. It is an integer value that indicates the
+     * strength, distance, or any other measure of the relationship between the two vertices.
+     */
     @Override
-    public void addEdge(T sourceKey, T destinationKey, int weight) {
-        VertexList<T> origin = vertices.get(sourceKey);
-        VertexList<T> destiny = vertices.get(destinationKey);
+    public void addEdge(K sourceKey, K destinationKey, int weight) throws IllegalArgumentException{
+        VertexList<T, K> origin = vertices.get(sourceKey);
+        VertexList<T, K> destiny = vertices.get(destinationKey);
 
-        try {
-            if (origin != null && destiny != null) {
-                origin.addEdge(destiny, weight);
-                origin.addVertex(destiny);
-                
-            } else {
-                throw new IllegalArgumentException("Vertex not found.");
-            }
-        } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
+        if (origin != null && destiny != null) {
+            origin.addEdge(destiny, weight);
+            origin.addVertex(destiny);
+        } else {
+            throw new IllegalArgumentException("Vertex not found.");
         }
     }
+    /**
+     * The bfs function performs a breadth-first search starting from a specified vertex and returns a
+     * string representation of the visited vertices.
+     *
+     * @param startVertexKey The startVertexKey parameter is the key of the vertex from which the
+     * breadth-first search (BFS) should start.
+     * @return The method is returning a string representation of the vertices visited during the
+     * breadth-first search starting from the specified startVertexKey.
+     */
     @Override
-    public String bfs(T startVertexKey) {
-        VertexList<T> startVertex = vertices.get(startVertexKey);
+    public String bfs(K startVertexKey) {
+        VertexList<T,K> startVertex = vertices.get(startVertexKey);
         StringBuilder result = new StringBuilder();
 
         if (startVertex != null) {
-            Queue<VertexList<T>> queue = new LinkedList<>();
+            Queue<VertexList<T,K>> queue = new LinkedList<>();
             queue.add(startVertex);
             startVertex.setVisited(true);
 
             while (!queue.isEmpty()) {
-                VertexList<T> currentVertex = queue.poll();
+                VertexList<T,K> currentVertex = queue.poll();
                 result.append("Visited: ").append(currentVertex.getId()).append("\n");
 
-                for (VertexList<T> adjacentVertex : currentVertex.getAdyacencyList()) {
+                for (VertexList<T,K> adjacentVertex : currentVertex.getAdjacencyList()) {
                     if (!adjacentVertex.isVisited()) {
                         queue.add(adjacentVertex);
                         adjacentVertex.setVisited(true);
@@ -68,87 +92,163 @@ public class GraphList<T> implements IGraph<T> {
         }
         return result.toString();
     }
+    /**
+     * The bfs function performs a breadth-first search starting from a specified vertex and returns a
+     * string representation of the visited vertices.
+     *
+     * @param startVertexKey The startVertexKey parameter is the key of the vertex from which the
+     * breadth-first search (BFS) should start.
+     * @return The method is returning a string representation of the vertices visited during the
+     * breadth-first search starting from the specified startVertexKey.
+     */
     @Override
-    public String dfs(Object startVertexKey) {
-        VertexList<T> startVertex = vertices.get(startVertexKey);
+    public String dfs(K startVertexKey) {
+        VertexList<T, K> startVertex = vertices.get(startVertexKey);
         StringBuilder result = new StringBuilder();
 
         if (startVertex != null) {
-            Stack<VertexList<T>> stack = new Stack<>();
+            Stack<VertexList<T, K>> stack = new Stack<>();
             stack.push(startVertex);
 
             while (!stack.isEmpty()) {
-                VertexList<T> currentVertex = stack.pop();
+                VertexList<T, K> currentVertex = stack.pop();
 
                 if (!currentVertex.isVisited()) {
                     result.append("Visited: ").append(currentVertex.getId()).append("\n");
                     currentVertex.setVisited(true);
+                    List<VertexList<T, K>> reversedAdjacents = new ArrayList<>(currentVertex.getAdjacencyList());
+                    Collections.reverse(reversedAdjacents);
 
-                    for (VertexList<T> adjacentVertex : currentVertex.getAdyacencyList()) {
+                    for (VertexList<T, K> adjacentVertex : reversedAdjacents) {
                         if (!adjacentVertex.isVisited()) {
                             stack.push(adjacentVertex);
                         }
                     }
                 }
             }
-            resetVisitedState();  
+            resetVisitedState();
         } else {
             result.append("Vertex not found.");
         }
 
         return result.toString();
     }
+    /**
+     * The function implements Dijkstra's algorithm to find the shortest path between two vertices in a
+     * graph.
+     *
+     * @param startVertexId The startVertexId is the identifier of the starting vertex in the graph. It
+     * represents the vertex from which the shortest path will be calculated.
+     * @param endVertexId The endVertexId parameter is the identifier of the vertex where the shortest
+     * path should end.
+     * @return The method is returning a String, that contains the vertexes that made the shortest path.
+     */
+    @Override
+    public String dijkstra(K startVertexId, K endVertexId) {
+        VertexList<T,K> startVertex = vertices.get(startVertexId);
+        VertexList<T,K> endVertex = vertices.get(endVertexId);
 
-    public List<VertexList<T>> dijkstra(T startVertexId, T endVertexId) {
-        VertexList<T> startVertex = vertices.get(startVertexId);
-        VertexList<T> endVertex = vertices.get(endVertexId);
-    
         if (startVertex == null || endVertex == null) {
-            System.out.println("Error: One or both vertices not found.");
-            return Collections.emptyList();
+            return "Error: One or both vertices not found.";
         }
-        Map<T, Integer> distances = new HashMap<>();
-        Map<T, List<VertexList<T>>> shortestPaths = new HashMap<>();
-        
-        for (VertexList<T> vertex : vertices.values()) {
+
+        Map<K, Integer> distances = new HashMap<>();
+        Map<K, List<VertexList<T,K>>> shortestPaths = new HashMap<>();
+
+        for (VertexList<T,K> vertex : vertices.values()) {
             distances.put(vertex.getId(), Integer.MAX_VALUE);
             shortestPaths.put(vertex.getId(), new ArrayList<>());
             vertex.setVisited(false);
         }
+
         distances.put(startVertexId, 0);
         shortestPaths.get(startVertexId).add(startVertex);
-    
-        PriorityQueue<VertexList<T>> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(distances::get));
+
+        PriorityQueue<VertexList<T,K>> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(distances::get));
         priorityQueue.add(startVertex);
-    
+
         while (!priorityQueue.isEmpty()) {
-            VertexList<T> currentVertex = priorityQueue.poll();
+            VertexList<T,K> currentVertex = priorityQueue.poll();
             if (!currentVertex.isVisited()) {
                 currentVertex.setVisited(true);
-                for (Edge<T> edge : currentVertex.getAristas()) {
-                    VertexList<T> neighbor = edge.getDestinationList();
+                for (VertexList<T,K> neighbor : currentVertex.getAdjacencyList()) {
                     if (!neighbor.isVisited()) {
-                        int newDistance = distances.get(currentVertex.getId()) + edge.getWeight();
+                        int newDistance = distances.get(currentVertex.getId()) + getWeightBetweenVertices(currentVertex, neighbor);
                         if (newDistance < distances.get(neighbor.getId())) {
                             distances.put(neighbor.getId(), newDistance);
-                            List<VertexList<T>> currentPath = new ArrayList<>(shortestPaths.get(currentVertex.getId()));
+                            List<VertexList<T,K>> currentPath = new ArrayList<>(shortestPaths.get(currentVertex.getId()));
                             currentPath.add(neighbor);
                             shortestPaths.put(neighbor.getId(), currentPath);
-    
+
                             priorityQueue.add(neighbor);
                         }
                     }
                 }
             }
         }
-        return shortestPaths.get(endVertexId);
+        StringBuilder result = new StringBuilder();
+        result.append("Shortest path from ").append(startVertexId).append(" to ").append(endVertexId).append(": ");
+        List<VertexList<T,K>> path = shortestPaths.get(endVertexId);
+        if (path.isEmpty() || !path.get(0).equals(startVertex)) {
+            result.append("No path found.");
+        } else {
+            for (VertexList<T,K> vertex : path) {
+                result.append(vertex.getId()).append(" -> ");
+            }
+            result.delete(result.length() - 4, result.length());
+        }
+        return result.toString();
     }
-
-    private void resetVisitedState() {
-        for (VertexList<T> vertex : vertices.values()) {
+    @Override
+    public void resetVisitedState() {
+        for (VertexList<T,K> vertex : vertices.values()) {
             vertex.setVisited(false);
         }
     }
-    
+
+    /**
+     * The function returns a string representation of the adjacency lists for each vertex in a graph.
+     *
+     * @return The method is returning a string representation of the adjacency lists for each vertex
+     * in the graph.
+     */
+    public String getAdjacencyListsAsString() {
+        StringBuilder result = new StringBuilder();
+        for (VertexList<T, K> vertex : vertices.values()) {
+            result.append("Adjacency list for vertex ").append(vertex.getId()).append(": ");
+            for (VertexList<T, K> adjacentVertex : vertex.getAdjacencyList()) {
+                result.append(adjacentVertex.getId()).append(" (").append(getWeightBetweenVertices(vertex, adjacentVertex)).append(") ");
+            }
+            result.append("\n");
+        }
+        return result.toString();
+    }
+    /**
+     * The function returns the weight between two vertices in a graph.
+     *
+     * @param source The source parameter is of type VertexList<T,K>. It represents the starting vertex
+     * or node from which we want to find the weight of the edge to the destination vertex.
+     * @param destination The "destination" parameter is of type VertexList<T,K>. It represents the
+     * vertex to which we want to find the weight of the edge connecting it to the source vertex.
+     * @return The method is returning the weight between two vertices. If there is an edge between the
+     * source and destination vertices, it will return the weight of that edge. If there is no edge
+     * between the vertices, it will return Integer.MAX_VALUE.
+     */
+    private int getWeightBetweenVertices(VertexList<T,K> source, VertexList<T,K> destination) {
+        for (Edge<T,K> edge : source.getAristas()) {
+            if (edge.getDestinationList().equals(destination)) {
+                return edge.getWeight();
+            }
+        }
+        return Integer.MAX_VALUE;
+    }
+    /**
+     * The function returns a Hashtable containing VertexList objects with keys of type K.
+     *
+     * @return A Hashtable object containing VertexList objects.
+     */
+    public Hashtable<K, VertexList<T, K>> getVertices() {
+        return vertices;
+    }
 }
 

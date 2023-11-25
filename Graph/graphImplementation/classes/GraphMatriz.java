@@ -9,8 +9,8 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Stack;
 
-public class GraphMatriz<T> implements IGraph<T> {
-    private Hashtable<T, Vertex<T>> vertices;
+public class GraphMatriz<K,T> implements IGraph<K,T> {
+    private Hashtable<K, Vertex<T,K>> vertices;
     private int[][] adjMatrix;
     private int numVertices;
 
@@ -34,7 +34,7 @@ public class GraphMatriz<T> implements IGraph<T> {
      * used to store the data associated with the vertex.
      */
     @Override
-    public void addVertex(T key, T data) {
+    public void addVertex(K key, T data) throws InvalidEntriesException {
 
         if (vertices.containsKey(key)) {
             throw new InvalidEntriesException("Vertex with the same key already exists.");
@@ -42,12 +42,12 @@ public class GraphMatriz<T> implements IGraph<T> {
         if (data == null) {
             throw new InvalidEntriesException("Vertex data cannot be null.");
         }
-        for (Vertex<T> vertex : vertices.values()) {
+        for (Vertex<T,K> vertex : vertices.values()) {
             if (vertex.getData().equals(data)) {
                 throw new InvalidEntriesException("Vertex with the same data already exists.");
             }
         }
-        Vertex<T> newVertex = new Vertex<>(key, data, numVertices);
+        Vertex<T,K> newVertex = new Vertex<>(key, data, numVertices);
         vertices.put(key, newVertex);
 
         int[][] newAdjMatrix = new int[numVertices + 1][numVertices + 1];
@@ -76,12 +76,12 @@ public class GraphMatriz<T> implements IGraph<T> {
      * strength or distance between the two vertices.
      */
     @Override
-    public void addEdge(T sourceKey, T destinationKey, int weight) throws IllegalArgumentException {// Escenario 1: Se añade una edge con weight negativo.
+    public void addEdge(K sourceKey, K destinationKey, int weight) throws IllegalArgumentException {
         if (weight < 0) {
             throw new InvalidEntriesException("Edge weight cannot be negative.");
         }
-        Vertex<T> sourceVertex = vertices.get(sourceKey);
-        Vertex<T> destinationVertex = vertices.get(destinationKey);
+        Vertex<T,K> sourceVertex = vertices.get(sourceKey);
+        Vertex<T,K> destinationVertex = vertices.get(destinationKey);
         if (sourceVertex == null || destinationVertex == null) {
             throw new IllegalArgumentException("One or both vertices not found in the graph.");
         }
@@ -104,25 +104,25 @@ public class GraphMatriz<T> implements IGraph<T> {
        * breadth-first search (BFS) traversal starting from the specified startVertexKey.
        */
       @Override
-      public String bfs(T startVertexKey) {
+      public String bfs(K startVertexKey) {
         StringBuilder result = new StringBuilder();
         try {
-            Vertex<T> startVertex = vertices.get(startVertexKey);
+            Vertex<T,K> startVertex = vertices.get(startVertexKey);
 
     
             if (startVertex == null) {
                 throw new IllegalArgumentException("Start vertex not found.");
             }
 
-            Queue<Vertex<T>> queue = new LinkedList<>();
+            Queue<Vertex<T,K>> queue = new LinkedList<>();
             queue.add(startVertex);
             startVertex.setVisited(true);
 
             while (!queue.isEmpty()) {
-                Vertex<T> currentVertex = queue.poll();
+                Vertex<T,K> currentVertex = queue.poll();
                 result.append("Visited: ").append(currentVertex.getId()).append("\n");
-                for (Edge<T> edge : currentVertex.getAristas()) {
-                    Vertex<T> adjacentVertex = edge.getDestination();
+                for (Edge<T,K> edge : currentVertex.getAristas()) {
+                    Vertex<T,K> adjacentVertex = edge.getDestination();
                     if (!adjacentVertex.isVisited()) {
                         queue.add(adjacentVertex);
                         adjacentVertex.setVisited(true);
@@ -138,8 +138,9 @@ public class GraphMatriz<T> implements IGraph<T> {
     /**
      * The function resets the visited state of all vertices in a graph.
      */
-    private void resetVisitedState() {
-        for (Vertex<T> vertex : vertices.values()) {
+    @Override
+    public void resetVisitedState() {
+        for (Vertex<T,K> vertex : vertices.values()) {
             vertex.setVisited(false);
         }
     }
@@ -153,24 +154,24 @@ public class GraphMatriz<T> implements IGraph<T> {
     * First Search (DFS) traversal of the graph, starting from the specified start vertex.
     */
     @Override
-    public String dfs(T startVertexKey) {
+    public String dfs(K startVertexKey) {
         StringBuilder result = new StringBuilder();
         try {
-            Vertex<T> startVertex = vertices.get(startVertexKey);
+            Vertex<T,K> startVertex = vertices.get(startVertexKey);
 
             if (startVertex == null) {
                 throw new IllegalArgumentException("Start vertex not found.");
             }
-            Stack<Vertex<T>> stack = new Stack<>();
+            Stack<Vertex<T,K>> stack = new Stack<>();
             stack.push(startVertex);
             startVertex.setVisited(true);
             while (!stack.isEmpty()) {
-                Vertex<T> currentVertex = stack.pop();
+                Vertex<T,K> currentVertex = stack.pop();
                 result.append("Visited: ").append(currentVertex.getId()).append("\n");
                 int currentVertexIndex = currentVertex.getIndex();
                 for (int i = 0; i < adjMatrix[currentVertexIndex].length; i++) {
                     if (adjMatrix[currentVertexIndex][i] != -1) {
-                        Vertex<T> adjacentVertex = getVertexByIndex(i);
+                        Vertex<T,K> adjacentVertex = getVertexByIndex(i);
 
                         if (!adjacentVertex.isVisited()) {
                             stack.push(adjacentVertex);
@@ -194,8 +195,8 @@ public class GraphMatriz<T> implements IGraph<T> {
      * specified index is found in the vertices map, it will be returned. Otherwise, null will be
      * returned.
      */
-    private Vertex<T> getVertexByIndex(int index) {
-        for (Vertex<T> vertex : vertices.values()) {
+    private Vertex<T,K> getVertexByIndex(int index) {
+        for (Vertex<T,K> vertex : vertices.values()) {
             if (vertex.getIndex() == index) {
                 return vertex;
             }
@@ -206,16 +207,17 @@ public class GraphMatriz<T> implements IGraph<T> {
   /**
    * The function implements Dijkstra's algorithm to find the shortest path from a given start vertex
    * to all other vertices in a graph.
-   * 
+   *
    * @param startVertexKey The startVertexKey parameter is a String that represents the key of the
    * starting vertex for the Dijkstra's algorithm.
    * @return The method is returning a List of Vertex objects.
    */
-    public List<Vertex<T>> dijkstra(T startVertexKey, T destinyKey) {
-        List<Vertex<T>> shortestPath = new ArrayList<>();
+    @Override
+    public String dijkstra(K startVertexKey, K destinyKey) {
+        StringBuilder result = new StringBuilder();
         try {
-            Vertex<T> startVertex = vertices.get(startVertexKey);
-            Vertex<T> destinyVertex = vertices.get(destinyKey);
+            Vertex<T,K> startVertex = vertices.get(startVertexKey);
+            Vertex<T,K> destinyVertex = vertices.get(destinyKey);
 
             if (startVertex == null || destinyVertex == null) {
                 throw new IllegalArgumentException("Start or destiny vertex not found.");
@@ -224,7 +226,7 @@ public class GraphMatriz<T> implements IGraph<T> {
             int numVertices = vertices.size();
             int[] distances = new int[numVertices];
             int[] previousVertices = new int[numVertices];
-            PriorityQueue<VertexDistancePair<T>> priorityQueue = new PriorityQueue<>();
+            PriorityQueue<VertexDistancePair<T,K>> priorityQueue = new PriorityQueue<>();
 
             for (int i = 0; i < numVertices; i++) {
                 distances[i] = Integer.MAX_VALUE;
@@ -233,11 +235,11 @@ public class GraphMatriz<T> implements IGraph<T> {
 
             int startVertexIndex = startVertex.getIndex();
             distances[startVertexIndex] = 0;
-            priorityQueue.add(new VertexDistancePair<T>(startVertex, 0));
+            priorityQueue.add(new VertexDistancePair<T,K>(startVertex, 0));
 
             while (!priorityQueue.isEmpty()) {
-                VertexDistancePair<T> currentPair = priorityQueue.poll();
-                Vertex<T> currentVertex = currentPair.getVertex();
+                VertexDistancePair<T,K> currentPair = priorityQueue.poll();
+                Vertex<T,K> currentVertex = currentPair.getVertex();
 
                 for (int i = 0; i < numVertices; i++) {
                     if (adjMatrix[currentVertex.getIndex()][i] != -1) {
@@ -247,25 +249,27 @@ public class GraphMatriz<T> implements IGraph<T> {
                         if (newDistance < distances[i]) {
                             distances[i] = newDistance;
                             previousVertices[i] = currentVertex.getIndex();
-                            priorityQueue.add(new VertexDistancePair<T>(getVertexByIndex(i), newDistance));
+                            priorityQueue.add(new VertexDistancePair<T,K>(getVertexByIndex(i), newDistance));
                         }
                     }
                 }
             }
 
             int destinyVertexIndex = destinyVertex.getIndex();
-            while (destinyVertexIndex != -1) {
-                shortestPath.add(0, getVertexByIndex(destinyVertexIndex));
-                destinyVertexIndex = previousVertices[destinyVertexIndex];
-            }
-            if (shortestPath.isEmpty() || shortestPath.get(0).equals(destinyVertex)) {
-                shortestPath.clear();
+            if (distances[destinyVertexIndex] == Integer.MAX_VALUE) {
+                result.append("No path found.");
+            } else {
+                while (destinyVertexIndex != -1) {
+                    result.insert(0, " -> " + getVertexByIndex(destinyVertexIndex).getId());
+                    destinyVertexIndex = previousVertices[destinyVertexIndex];
+                }
+                result.delete(0, 4);
             }
 
         } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
+            result.append("Error: ").append(e.getMessage());
         }
-        return shortestPath;
+        return result.toString();
     }
     
     /**
@@ -306,9 +310,9 @@ public class GraphMatriz<T> implements IGraph<T> {
      * @param destinationKey The key of the destination vertex.
      * @return The weight of the edge between the source and destination vertices, or -1 if no edge exists.
      */
-    public int getEdgeWeight(T sourceKey, T destinationKey) {
-        Vertex<T> sourceVertex = vertices.get(sourceKey);
-        Vertex<T> destinationVertex = vertices.get(destinationKey);
+    public int getEdgeWeight(K sourceKey, K destinationKey) {
+        Vertex<T,K> sourceVertex = vertices.get(sourceKey);
+        Vertex<T,K> destinationVertex = vertices.get(destinationKey);
 
         if (sourceVertex == null || destinationVertex == null) {
             throw new IllegalArgumentException("One or both vertices not found in the graph.");
@@ -321,4 +325,5 @@ public class GraphMatriz<T> implements IGraph<T> {
 
         return adjMatrix[sourceIndex][destinationIndex];
     }
+
 }

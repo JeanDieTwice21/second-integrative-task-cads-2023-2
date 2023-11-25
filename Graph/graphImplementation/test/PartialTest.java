@@ -9,7 +9,7 @@ import java.util.List;
 public class PartialTest {
     public static void main(String[] args) {
 
-        GraphMatriz<String> graph = new GraphMatriz<>();
+        GraphMatriz<String,String> graph = new GraphMatriz<>();
         graph.addVertex("A", "Vertex A");
         graph.addVertex("B", "Vertex B");
         graph.addVertex("C", "Vertex C");
