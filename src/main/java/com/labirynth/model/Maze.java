@@ -12,6 +12,27 @@ public class Maze extends GraphList<String, Cell> {
         super();
     }
 
+    public ArrayList<Position> getAllWallsPosition() {
+        ArrayList<Position> wallPositions = new ArrayList<>();
+
+        for (int i = 0; i < getNumCols(); i++) {
+            for (int j = 0; j < getNumRows(); j++) {
+                VertexList<Cell, String> vertexList = getCell(i, j);
+
+                if (vertexList != null) {
+                    Cell cell = vertexList.getData();
+                    if (cell != null && cell.getType() == CellType.WALL) {
+                        wallPositions.add(cell.getPosition());
+                    }
+                }
+            }
+        }
+
+        return wallPositions;
+    }
+
+
+
     public void addCell(int row, int col, CellType type) {
         Cell cell = new Cell(row, col, type);
         String vertexKey = generateKey(row, col);
